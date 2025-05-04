@@ -4,11 +4,11 @@
       <v-container>
         <h1>ヒント</h1>
         <p>自分が誰か分からない時は、Googleなどのサービスで<br>
-           **アカウント情報**を確認してみましょう。</p>
+          **アカウント情報**を確認してみましょう。</p>
         <p>検索画面の右上にあるアカウントアイコンをクリックしてみてください。</p>
         <div class="mt-8">
-             <v-btn @click="gameStore.navigate('/')">検索画面に戻る</v-btn>
-         </div>
+          <v-btn @click="gameStore.navigate('/')">検索画面に戻る</v-btn>
+        </div>
       </v-container>
     </v-main>
   </v-app>
@@ -21,8 +21,8 @@ import { onMounted } from 'vue';
 const gameStore = useGameStore();
 
 onMounted(() => {
-    // ヒントページを見た時の進行度更新
-     gameStore.viewedHintPage('account'); // 'account' はアカウント確認を促すヒントであるというマーカー
+  // ヒントページを見た時の進行度更新
+  gameStore.viewedHintPage('account'); // 'account' はアカウント確認を促すヒントであるというマーカー
 });
 </script>
 
