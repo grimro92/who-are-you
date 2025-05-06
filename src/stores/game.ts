@@ -8,7 +8,7 @@ export const useGameStore = defineStore('game', {
     isGameComplete: false as boolean, // ゲームクリアしたか
 
     // Chapter 1 の進行状況
-    chapter1Progress: 'start' as 'start' | 'searchedWho' | 'viewedResults' | 'viewedHint' | 'viewedAccountLogin' | 'viewedPasswordReset' | 'emailAvailable' | 'viewedPasswordResetEmail' | 'foundName',
+    chapter1Progress: 'start' as 'start' | 'searchedWho' | 'viewedResults' | 'viewedHint' | 'viewedAccountLogin' | 'viewedPasswordReset' | 'emailAvailable' | 'viewedPasswordResetEmail' | 'foundName' | 'searchedYusukeTanaka',
 
     // 発見した情報
     discoveredName: null as string | null,
@@ -26,7 +26,7 @@ export const useGameStore = defineStore('game', {
           id: 'passwordReset',
           from: 'accounts@simulated.com',
           subject: 'パスワードリセットのご依頼',
-          body: 'Yusuke Tanaka 様\n\nパスワードリセットの申請を受け付けました。以下のリンクから新しいパスワードを設定してください。\n\n...', // ここで名前が明らかになる
+          body: '田中 祐輔 様\n\nパスワードリセットの申請を受け付けました。以下のリンクから新しいパスワードを設定してください。\n\n...', // ここで名前が明らかになる
           isRead: false,
           isAvailable: false, // ゲームの進行で利用可能になるか
         }
@@ -57,24 +57,28 @@ export const useGameStore = defineStore('game', {
         const lowerQuery = query.toLowerCase().trim();
         // Chapter 1 のロジック
         // if (this.currentChapter === 1) {
-          if ( /* this.chapter1Progress === 'start' && */ (lowerQuery.includes('私') || lowerQuery.includes('誰') || lowerQuery.includes('わたし') || lowerQuery.includes('だれ') || lowerQuery.includes('自分'))) {
-            // 「私は誰」系の検索があったら、特定の検索結果を生成して結果ページへ
-            this.generateSearchResults('who_am_i');
-            this.chapter1Progress = 'searchedWho';
-            router.push('/results?q=' + encodeURIComponent(query));
-          } else {
-            // その他の検索や、既に「私は誰」を検索済みの場合はジェネリックな結果やヒントを含む結果を表示
-            this.generateSearchResults('generic'); // 仮のジェネリック結果
-            router.push('/results?q=' + encodeURIComponent(query)); // とりあえず結果ページへ遷移させる
-            // TODO: 進行度に応じて検索結果の内容を変えるロジックをここに追加
-          }
+        if ( /* this.chapter1Progress === 'start' && */ (lowerQuery.includes('私') || lowerQuery.includes('誰') || lowerQuery.includes('わたし') || lowerQuery.includes('だれ') || lowerQuery.includes('自分'))) {
+          // 「私は誰」系の検索があったら、特定の検索結果を生成して結果ページへ
+          this.generateSearchResults('who_am_i');
+          this.chapter1Progress = 'searchedWho';
+          router.push('/results?q=' + encodeURIComponent(query));
+        } else if (lowerQuery.includes('田中祐輔') || lowerQuery.includes('田中 祐輔') || lowerQuery.includes('田中　祐輔')) {
+          this.generateSearchResults('yusuke_tanaka');
+          this.chapter1Progress = 'searchedYusukeTanaka'; // 田中祐輔を検索した状態に
+          router.push('/results?q=' + encodeURIComponent(query)); // 検索結果ページへ遷移
+        } else {
+          // その他の検索や、既に「私は誰」を検索済みの場合はジェネリックな結果やヒントを含む結果を表示
+          this.generateSearchResults('generic'); // 仮のジェネリック結果
+          router.push('/results?q=' + encodeURIComponent(query)); // とりあえず結果ページへ遷移させる
+          // TODO: 進行度に応じて検索結果の内容を変えるロジックをここに追加
+        }
         // }
         // TODO: Chapter 2以降の検索ロジックを追加
       }
     },
 
     // シミュレートされた検索結果を生成する（ゲーム状態に応じて内容を変更）
-    generateSearchResults(type: 'initial' | 'who_am_i' | 'generic') {
+    generateSearchResults(type: 'initial' | 'who_am_i' | 'generic' | 'yusuke_tanaka') {
       this.simulatedData.searchResults = []; // 結果をクリア
 
       if (type === 'initial') {
@@ -89,10 +93,10 @@ export const useGameStore = defineStore('game', {
       } else if (type === 'generic') {
         // その他の検索時の結果（進行度によって内容を変える）
         // if (this.chapter1Progress === 'start') {
-          this.simulatedData.searchResults = [
-            { id: 'generic_start_1', title: '今日の天気', snippet: '現在の天気情報...', url: '#' },
-            // ...
-          ];
+        this.simulatedData.searchResults = [
+          { id: 'generic_start_1', title: '今日の天気', snippet: '現在の天気情報...', url: '#' },
+          // ...
+        ];
         // } else if (this.chapter1Progress === 'searchedWho' || this.chapter1Progress === 'viewedResults') {
         //   // 既に「私は誰」検索済みの場合は、アカウント確認を促すヒントを含む結果を出すなど
         //   this.simulatedData.searchResults = [
@@ -102,6 +106,14 @@ export const useGameStore = defineStore('game', {
         //   ];
         // }
         // TODO: 他の進行度でのジェネリック結果を定義
+      } else if (type === 'yusuke_tanaka') {
+        // 「田中祐輔」検索時の結果
+        this.simulatedData.searchResults = [
+          { id: 'yusuke_social', title: '田中祐輔のInstagram', snippet: '田中祐輔のInstagramを見てみましょう...', url: '/instagram/yusuke_tanaka' },
+          // { id: 'yusuke_profile', title: '田中祐輔のプロフィール', snippet: '田中祐輔は...', url: '/profile/yusuke_tanaka' },
+          // { id: 'yusuke_news', title: '田中祐輔に関するニュース', snippet: '最近の田中祐輔に関するニュース...', url: '/news/yusuke_tanaka' },
+          // { id: 'yusuke_related', title: '田中祐輔に関連する人物', snippet: '田中祐輔の友人や家族...', url: '/related/yusuke_tanaka' },
+        ];
       }
       // TODO: 検索クエリに応じて結果をフィルタリング/並び替えるロジックを追加
     },
@@ -129,13 +141,13 @@ export const useGameStore = defineStore('game', {
     attemptAccountAccess() {
       // if (this.currentChapter === 1) {
       //   if (this.chapter1Progress === 'viewedHint' || this.chapter1Progress === 'viewedResults') {
-          // ヒントを見た後、または検索結果を見た後ならアカウントログイン画面へ
-          this.chapter1Progress = 'viewedAccountLogin';
-          router.push('/account/login');
-        // } else {
-          // まだアカウントへのアクセスが許可されていない場合（例: ヒントを見ていない）
-          // TODO: 何かフィードバック（例: 「今はまだ見れないようだ」といったメッセージ表示）
-          //console.log('Account access not yet available.');
+      // ヒントを見た後、または検索結果を見た後ならアカウントログイン画面へ
+      this.chapter1Progress = 'viewedAccountLogin';
+      router.push('/account/login');
+      // } else {
+      // まだアカウントへのアクセスが許可されていない場合（例: ヒントを見ていない）
+      // TODO: 何かフィードバック（例: 「今はまだ見れないようだ」といったメッセージ表示）
+      //console.log('Account access not yet available.');
       //   }
       // }
       // TODO: Chapter 2以降のロジック
@@ -156,7 +168,7 @@ export const useGameStore = defineStore('game', {
       // TODO: 進行度に応じてメールクライアントを開けるかをチェック
       // パスワードリセット画面を見た後であれば開ける、など
       // if (this.currentChapter === 1 && this.chapter1Progress === 'viewedPasswordReset') {
-        router.push('/email');
+      router.push('/email');
       // } else {
       //   // TODO: 開けない場合のフィードバック
       //   //console.log('Email client cannot be accessed yet.');
